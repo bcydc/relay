@@ -1,13 +1,6 @@
 import { ImageResponse } from "next/og"
 
 export async function GET(req, { params }) {
-  function sanitizeForSVG(str) {
-    return String(str)
-      .replace(/[-<>&'"]/gim, function(i) {
-        return '&#'+i.charCodeAt(0)+';';
-      });
-  }
-
   const { filename } = await params;
 
   if (!filename.endsWith('.png')) {
@@ -35,10 +28,6 @@ export async function GET(req, { params }) {
   if (digits.length === 10) {
     n = `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
   }
-
-  // Sanitize all except phone number, which is sanitized before formatting
-  [pf, lf, ll, e, a] = [pf, lf, ll, e, a].map(sanitizeForSVG);
-  // Do not sanitize dashes in phone number after formatting
 
   try {
     return new ImageResponse(
