@@ -14,14 +14,31 @@ export async function GET(req, { params }) {
     return new Response('Not found', { status: 404 });
   }
 
-  // Remove .png and split by hyphens
-  const parts = filename.slice(0, -4).split('-');
+  // Remove .png and split by underscores
+  const parts = filename.slice(0, -4).split('_');
   if (parts.length !== 6) {
-    return new Response('Invalid format', { status: 400 });
+    return new Response('Invalid format: expected 6 underscore-separated fields', { status: 400 });
   }
 
   // Decode URI components for each part
-  const [pf, lf, ll, e, n, a] = parts.map(decodeURIComponent).map(sanitizeForSVG);
+  let [pf, lf, ll, e, n, a] = parts.map(decodeURIComponent);
+
+  // Remove leading "+1" from phone number if present
+  if (n.startsWith("+1")) {
+    n = n.slice(2);
+    // Remove any leading spaces or dashes after country code
+    n = n.replace(/^[\s-]+/, "");
+  }
+
+  // Format 10-digit phone numbers as 604-777-8888
+  const digits = n.replace(/\D/g, "");
+  if (digits.length === 10) {
+    n = `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+
+  // Sanitize all except phone number, which is sanitized before formatting
+  [pf, lf, ll, e, a] = [pf, lf, ll, e, a].map(sanitizeForSVG);
+  // Do not sanitize dashes in phone number after formatting
 
   try {
     return new ImageResponse(
