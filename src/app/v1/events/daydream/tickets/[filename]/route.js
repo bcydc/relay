@@ -1,4 +1,15 @@
-import { ImageResponse } from "next/og"
+import { promises as fs } from "fs";
+import path from "path";
+
+// Simple XML escape for SVG safety
+function escapeXML(str) {
+  return String(str)
+    .replace(/&/g, "&")
+    .replace(/"/g, '"')
+    .replace(/'/g, "'")
+    .replace(/</g, "<")
+    .replace(/>/g, ">");
+}
 
 export async function GET(req, { params }) {
   const { filename } = await params;
@@ -19,7 +30,6 @@ export async function GET(req, { params }) {
   // Remove leading "+1" from phone number if present
   if (n.startsWith("+1")) {
     n = n.slice(2);
-    // Remove any leading spaces or dashes after country code
     n = n.replace(/^[\s-]+/, "");
   }
 
@@ -29,105 +39,57 @@ export async function GET(req, { params }) {
     n = `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
   }
 
+  // Sanitize all fields for SVG/XML safety
+  pf = escapeXML(pf);
+  lf = escapeXML(lf);
+  ll = escapeXML(ll);
+  e = escapeXML(e);
+  n = escapeXML(n);
+  a = escapeXML(a);
+
   try {
-    return new ImageResponse(
-      (
-        <div
-          style={{
-            width: 400,
-            height: 220,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#e6e6fa",
-            borderRadius: 24,
-            fontFamily: "sans-serif",
-            position: "relative",
-          }}
-        >
-          <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-            <div
-              style={{
-                fontSize: 28,
-                fontWeight: "bold",
-                color: "#6c47ff",
-                marginBottom: 8,
-                marginTop: 8,
-                letterSpacing: 2,
-                textAlign: "center",
-                display: "flex",
-              }}
-            >
-              DAYDREAM
-            </div>
-            <div
-              style={{
-                fontSize: 22,
-                color: "#222",
-                marginBottom: 2,
-                textAlign: "center",
-                display: "flex",
-              }}
-            >
-              {pf}
-            </div>
-            <div
-              style={{
-                fontSize: 14,
-                color: "#444",
-                marginBottom: 2,
-                textAlign: "center",
-                display: "flex",
-              }}
-            >
-              {lf} {ll}
-            </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: "#666",
-                marginBottom: 2,
-                textAlign: "center",
-                display: "flex",
-              }}
-            >
-              {e} | {n}
-            </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: "#888",
-                marginBottom: 8,
-                textAlign: "center",
-                display: "flex",
-              }}
-            >
-              Age: {a}
-            </div>
-            <div
-              style={{
-                position: "absolute",
-                left: 20,
-                bottom: 12,
-                width: 360,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: "#b39ddb",
-                display: "flex",
-              }}
-            />
-          </div>
-        </div>
-      ),
-      {
-        width: 400,
-        height: 220,
+    // Load SVG template
+    const svgPath = path.join(process.cwd(), "public", "images", "events", "daydream", "var1.svg");
+
+    let svg = await fs.readFile(svgPath, "utf8");
+
+    // Replace placeholders
+    svg = svg
+      .replace("[pf]", pf)
+      .replace("[lf]", lf)
+      .replace("[ll]", ll)
+      .replace("[e]", e)
+      .replace("[n]", n)
+      .replace("[a]", a);
+
+
+    // Example: base font size and min font size
+    const baseFontSize = 75;
+    const minFontSize = 40;
+    const maxChars = 12; // adjust as needed
+
+    // Combine the name fields
+    const name = `${pf} ${ll}`;
+    let fontSize = baseFontSize;
+    if (name.length > maxChars) {
+      // Reduce font size proportionally for longer names
+      fontSize = Math.max(minFontSize, baseFontSize - (name.length - maxChars) * 3);
+    }
+
+    // Replace [fontSize] in SVG
+    svg = svg.replace("[fontSize]", fontSize);
+
+
+    return new Response(svg, {
+      status: 200,
+      headers: {
+        "Content-Type": "image/svg+xml",
+        "Cache-Control": "no-store"
       }
-    );
+    });
   } catch (e) {
     console.log(`${e.message}`);
-    return new Response(`Failed to generate the image`, {
+    return new Response(`Failed to generate the SVG`, {
       status: 500,
     });
   }

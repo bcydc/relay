@@ -1,0 +1,9 @@
+<svg width="400" height="220" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="220" rx="24" fill="#e6e6fa"/>
+  <rect x="20" y="200" width="360" height="8" rx="4" fill="#b39ddb"/>
+  <text x="200" y="48" text-anchor="middle" font-size="28" font-family="sans-serif" font-weight="bold" fill="#6c47ff" letter-spacing="2">DAYDREAM</text>
+  <text id="pf" x="200" y="90" text-anchor="middle" font-size="22" font-family="sans-serif" fill="#222">[pf]</text>
+  <text id="lfll" x="200" y="115" text-anchor="middle" font-size="14" font-family="sans-serif" fill="#444">[lf] [ll]</text>
+  <text id="en" x="200" y="135" text-anchor="middle" font-size="12" font-family="sans-serif" fill="#666">[e] | [n]</text>
+  <text id="a" x="200" y="155" text-anchor="middle" font-size="12" font-family="sans-serif" fill="#888">Age: [a]</text>
+</svg>
