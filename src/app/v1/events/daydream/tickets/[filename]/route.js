@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
+import crypto from "crypto";
 
 // Simple XML escape for SVG safety
 function escapeXML(str) {
@@ -9,6 +10,14 @@ function escapeXML(str) {
     .replace(/'/g, "'")
     .replace(/</g, "<")
     .replace(/>/g, ">");
+}
+
+function selectVariant(infoString) {
+  const hashHex = crypto.createHash('md5').update(infoString).digest('hex');
+  const hashDec = BigInt('0x' + hashHex).toString(10);
+  const lastDigit = parseInt(hashDec[hashDec.length - 1], 10);
+  const variantIndex = lastDigit % 3;
+  return ['var1', 'var2', 'var3'][variantIndex];
 }
 
 export async function GET(req, { params }) {
@@ -47,9 +56,12 @@ export async function GET(req, { params }) {
   n = escapeXML(n);
   a = escapeXML(a);
 
+  const infoString = `${pf}|${lf}|${ll}|${e}|${n}|${a}`;
+  const variant = selectVariant(infoString);
+
   try {
     // Load SVG template
-    const svgPath = path.join(process.cwd(), "public", "images", "events", "daydream", "var1.svg");
+    const svgPath = path.join(process.cwd(), "public", "images", "events", "daydream", `${variant}.svg`);
 
     let svg = await fs.readFile(svgPath, "utf8");
 
